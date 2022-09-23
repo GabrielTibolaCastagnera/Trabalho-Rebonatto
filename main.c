@@ -15,6 +15,7 @@ Willian Brun
 #include <sys/resource.h>
 #include <fcntl.h>
 #include <sys/sysinfo.h>
+#include <sys/wait.h>
 
 int main(int argc, char *argv[])
 {
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
                 printf("parent has forked child with pid of %d\n", (int)pid);
                 time(&t);
                 printf("parent is starting wait at %s", ctime(&t));
-                if ((pid = wait(&status)) == -1)
+                if ( (pid = wait(&status)) == -1)
                     perror("wait() error");
                 else
                 {
