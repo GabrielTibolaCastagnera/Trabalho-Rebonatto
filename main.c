@@ -16,6 +16,7 @@ Willian Brun
 #include <fcntl.h>
 #include <sys/sysinfo.h>
 #include <sys/wait.h>
+#include <sys/prctl.h>
 
 int main(int argc, char *argv[])
 {
@@ -67,71 +68,73 @@ int main(int argc, char *argv[])
     printf("Processo [%d]. Pai tem como pai o processo: %d\n", pidAtual, parentPid);
     printf("Processo [%d]. Processos em execução: %ld\n", pidAtual, sysconf(_SC_CHILD_MAX));
 
+    pid_t children[3];
     pid_t pid;
     time_t t;
     int status;
 
-    if ((pid = fork()) < 0)
+    if ((children[0] = fork()) < 0)
         perror("fork() error");
-    else if (pid == 0)
+    else if (children[0] == 0)
     {
+        prctl(PR_SET_PDEATHSIG, SIGTERM);
         time(&t);
         printf("child (pid %d) started at %s", (int)getpid(), ctime(&t));
-        sleep(5);
         time(&t);
         printf("child exiting at %s", ctime(&t));
         exit(1);
     }
     else
     {
-        if ((pid = fork()) < 0)
+        if ((children[1] = fork()) < 0)
             perror("fork() error");
-        else if (pid == 0)
+        else if (children[1] == 0)
         {
+            prctl(PR_SET_PDEATHSIG, SIGTERM);
             time(&t);
             printf("child (pid %d) started at %s", (int)getpid(), ctime(&t));
-            sleep(5);
             time(&t);
             printf("child exiting at %s", ctime(&t));
             exit(2);
         }
         else
         {
-            if ((pid = fork()) < 0)
+            if ((children[2] = fork()) < 0)
                 perror("fork() error");
-            else if (pid == 0)
+            else if (children[2] == 0)
             {
+                prctl(PR_SET_PDEATHSIG, SIGTERM);
                 time(&t);
                 printf("child (pid %d) started at %s", (int)getpid(), ctime(&t));
-                sleep(5);
                 time(&t);
                 printf("child exiting at %s", ctime(&t));
                 exit(3);
             }
             else
             {
-                printf("parent has forked child with pid of %d\n", (int)pid);
-                time(&t);
-                printf("parent is starting wait at %s", ctime(&t));
-                if ( (pid = wait(&status)) == -1)
-                    perror("wait() error");
-                else
-                {
-                    time(&t);
-                    printf("parent is done waiting at %s", ctime(&t));
-                    printf("the pid of the process that ended was %d\n", (int)pid);
-                    if (WIFEXITED(status))
-                        printf("child exited with status of %d\n", WEXITSTATUS(status));
-                    else if (WIFSIGNALED(status))
-                        printf("child was terminated by signal %d\n",
-                               WTERMSIG(status));
-                    else if (WIFSTOPPED(status))
-                        printf("child was stopped by signal %d\n", WSTOPSIG(status));
-                    else
-                        puts("reason unknown for child termination");
-                }
             }
         }
+    }
+    printf("parent has forked child with pid of %d\n", (int)pid);
+    time(&t);
+    printf("parent is starting wait at %s", ctime(&t));
+    if ((pid = wait(&status)) == -1)
+        perror("wait() error");
+    else
+    {
+        time(&t);
+        printf("parent is done waiting at %s", ctime(&t));
+        printf("the pid of the process that ended was %d\n", (int)pid);
+
+        if (WIFEXITED(status))
+            printf("child exited with status of %d\n", WEXITSTATUS(status));
+        else if (WIFSIGNALED(status))
+            printf("child was terminated by signal %d\n",
+                   WTERMSIG(status));
+        else if (WIFSTOPPED(status))
+            printf("child was stopped by signal %d\n", WSTOPSIG(status));
+        else
+            puts("reason unknown for child termination");
     }
 
     return 0;
