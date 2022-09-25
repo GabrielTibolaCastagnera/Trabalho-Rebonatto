@@ -1,3 +1,11 @@
 {
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "siginfo_t.h": "c",
+        "types.h": "c",
+        "resource.h": "c",
+        "wait.h": "c",
+        "time.h": "c",
+        "unistd.h": "c"
+    }
 }
