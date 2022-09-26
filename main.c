@@ -20,7 +20,7 @@ Willian Brun
 #include <errno.h>
 #include <math.h>
 
-void filho1(int num)
+void filho1(long long num)
 {
     int divisor = 1;
     int add = 1;
@@ -36,27 +36,27 @@ void filho1(int num)
             sum += divisor;
         }
     }
-    printf("Soma dos números divisores de %d: %lld\n", num, sum);
+    printf("Soma dos números divisores de %lld: %lld\n", num, sum);
     return;
 }
-void filho2(int num)
+void filho2(long long num)
 {
     if (num % 2 == 0 || num == 1)
     {
-        printf("O número %d não é primo!\n", num);
+        printf("O número %lld não é primo!\n", num);
         return;
     }
     int divisor = 3;
-    float max = sqrt(num);
+    double max = sqrt(num);
     for (divisor; divisor <= max; divisor += 2)
     {
         if (num % divisor == 0)
         {
-            printf("O número %d não é primo!\n", num);
+            printf("O número %lld não é primo!\n", num);
             return;
         }
     }
-    printf("O número %d é primo!\n", num);
+    printf("O número %lld é primo!\n", num);
     return;
 }
 void filho3()
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
         printf("Too many arguments\n");
         exit(1);
     }
-    int num1 = atoi(argv[1]);
-    int num2 = atoi(argv[2]);
+    long long num1 = atoll(argv[1]);
+    long long num2 = atoll(argv[2]);
     // //Verifica se os parâmetros contém pelo menos 10 digitos
     // if()
     // {
