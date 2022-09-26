@@ -22,7 +22,7 @@ Willian Brun
 
 void filho1(long long num)
 {
-    int divisor = 1;
+    long long divisor = 1;
     int add = 1;
     if (num % 2)
     {
