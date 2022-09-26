@@ -28,13 +28,12 @@ void filho1(int num)
     {
         add++;
     }
-    float max = sqrt(num);
     long long sum = 0;
-    for (divisor; divisor <= max; divisor += add)
+    for (divisor; divisor <= num; divisor += add)
     {
         if (num % divisor == 0)
         {
-            sum += divisor + num / divisor;
+            sum += divisor;
         }
     }
     printf("Soma dos números divisores de %d: %lld\n", num, sum);
@@ -161,17 +160,13 @@ int main(int argc, char *argv[])
             }
             else
             {
+                system("ps");
                 //Espera um dos Filhos Terminarem e retorna o seu pid
                 pid = wait(&status);
-                system("ps");
                 //Encerra todos os filhos
                 for (int i = 0; i < 3; i++)
                 {
-                    if (kill(children[i], SIGTERM) == -1 && errno != ESRCH)
-                    {
-                        /*Free resources*/
-                        exit(EXIT_FAILURE);
-                    }
+                    kill(children[i], SIGTERM);
                 }
                 int filho;
                 //Procura qual filho Terminou
