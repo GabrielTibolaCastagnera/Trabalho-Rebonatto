@@ -172,12 +172,13 @@ int main(int argc, char *argv[])
                 //Procura qual filho Terminou
                 for(int i = 0; i < 3; i++)
                 {
-                    if (children[i] == pid)
+                    if (children[i] == pid){
                         filho = i + 1;
+                        break;
+                    }
                 }
                 printf("O filho %d com pid %d terminou primeiro\n", filho, pid);
 
-                time(&t);
             }
         }
     }
