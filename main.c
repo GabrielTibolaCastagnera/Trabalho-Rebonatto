@@ -119,66 +119,62 @@ int main(int argc, char *argv[])
     printf("Processo [%d]. Pai tem como pai o processo: %d\n", pidAtual, parentPid);
     printf("Processo [%d]. Processos em execução: %ld\n", pidAtual, sysconf(_SC_CHILD_MAX));
 
-    //Armazena os pids dos filhos
+    // Armazena os pids dos filhos
     pid_t children[3];
     pid_t pid;
     time_t t;
     int status;
-    //Cria o primeiro Filho
+    // Cria o primeiro Filho
     if ((children[0] = fork()) < 0)
         perror("fork() error");
     else if (children[0] == 0)
     {
-        //Filho 1
+        // Filho 1
         printf("Processo [%d]. Filho 1 tem como pai o processo: %d.\n", getpid(), getppid());
         filho1(num1);
         printf("Processo [%d]. Filho 1 vai terminar sua execução ...\n", getpid());
+        exit(1);
     }
     else
     {
-        //Cria o segundo Filho
+        // Cria o segundo Filho
         if ((children[1] = fork()) < 0)
             perror("fork() error");
         else if (children[1] == 0)
         {
-            //Filho 2
+            // Filho 2
             printf("Processo [%d]. Filho 2 tem como pai o processo: %d.\n", getpid(), getppid());
             filho2(num2);
             printf("Processo [%d]. Filho 2 vai terminar sua execução ...\n", getpid());
+            exit(2);
         }
         else
         {
-            //Cria o terceiro filho
+            // Cria o terceiro filho
             if ((children[2] = fork()) < 0)
                 perror("fork() error");
             else if (children[2] == 0)
             {
-                //Filho 3
+                // Filho 3
                 printf("Processo [%d]. Filho 3 tem como pai o processo: %d.\n", (int)getpid(), getppid());
                 filho3();
                 printf("Processo [%d]. Filho 3 apto novamente. Vai terminar sua execução. Fim do Filho3\n", getpid());
+                exit(3);
             }
             else
             {
                 system("ps");
-                //Espera um dos Filhos Terminarem e retorna o seu pid
+                // Espera um dos Filhos Terminarem e retorna o seu pid
                 pid = wait(&status);
-                //Encerra todos os filhos
+                int filho = WEXITSTATUS(status);
+                // Encerra todos os filhos
                 for (int i = 0; i < 3; i++)
                 {
-                    kill(children[i], SIGTERM);
+                    if ((i+1) != status)
+                        kill(children[i], SIGTERM);
                 }
-                int filho;
-                //Procura qual filho Terminou
-                for(int i = 0; i < 3; i++)
-                {
-                    if (children[i] == pid){
-                        filho = i + 1;
-                        break;
-                    }
-                }
-                printf("O filho %d com pid %d terminou primeiro\n", filho, pid);
 
+                printf("O filho %d com pid %d terminou primeiro\n", filho, pid);
             }
         }
     }
