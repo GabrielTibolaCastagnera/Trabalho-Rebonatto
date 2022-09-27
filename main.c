@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
                 // Encerra todos os filhos
                 for (int i = 0; i < 3; i++)
                 {
-                    if ((i + 1) != status)
+                    if ((i + 1) != filho)
                         kill(children[i], SIGTERM);
                 }
 
