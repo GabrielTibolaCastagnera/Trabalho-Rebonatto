@@ -110,14 +110,14 @@ int main(int argc, char *argv[])
     parentPid = getppid();
 
     // Processos em execução
-    long executionProcesses = 0;
+    long executionProcesses = info.procs;
 
     printf("Informações do 'pai' e do sistema computacional\n");
     printf("Processo [%d]. Máximo de processos concorrentes: %ld\n", pidAtual, numOfProcess);
     printf("Processo [%d]. Carga de CPU no último minuto: %ld\n", pidAtual, cpuLoad);
     printf("Processo [%d]. Memória disponível: %ld\n", pidAtual, freeramMemory);
     printf("Processo [%d]. Pai tem como pai o processo: %d\n", pidAtual, parentPid);
-    printf("Processo [%d]. Processos em execução: %ld\n", pidAtual, sysconf(_SC_CHILD_MAX));
+    printf("Processo [%d]. Processos em execução: %ld\n", pidAtual, executionProcesses);
 
     // Armazena os pids dos filhos
     pid_t children[3];
@@ -130,9 +130,12 @@ int main(int argc, char *argv[])
     else if (children[0] == 0)
     {
         // Filho 1
-        printf("Processo [%d]. Filho 1 tem como pai o processo: %d.\n", getpid(), getppid());
+        pid_t currentPid = getpid();
+        sysinfo(&info);
+        printf("Processo [%d]. Filho 1 tem como pai o processo: %d.\n", currentPid, getppid());
+        printf("Processo [%d]. Processos em execução: %d\n", currentPid, info.procs);
         filho1(num1);
-        printf("Processo [%d]. Filho 1 vai terminar sua execução ...\n", getpid());
+        printf("Processo [%d]. Filho 1 vai terminar sua execução ...\n", currentPid);
         exit(1);
     }
     else
@@ -142,10 +145,14 @@ int main(int argc, char *argv[])
             perror("fork() error");
         else if (children[1] == 0)
         {
+
             // Filho 2
-            printf("Processo [%d]. Filho 2 tem como pai o processo: %d.\n", getpid(), getppid());
+            pid_t currentPid = getpid();
+            sysinfo(&info);
+            printf("Processo [%d]. Filho 2 tem como pai o processo: %d.\n", currentPid, getppid());
+            printf("Processo [%d]. Processos em execução: %d\n", currentPid, info.procs);
             filho2(num2);
-            printf("Processo [%d]. Filho 2 vai terminar sua execução ...\n", getpid());
+            printf("Processo [%d]. Filho 2 vai terminar sua execução ...\n", currentPid);
             exit(2);
         }
         else
@@ -156,9 +163,12 @@ int main(int argc, char *argv[])
             else if (children[2] == 0)
             {
                 // Filho 3
-                printf("Processo [%d]. Filho 3 tem como pai o processo: %d.\n", (int)getpid(), getppid());
+                pid_t currentPid = getpid();
+                sysinfo(&info);
+                printf("Processo [%d]. Filho 3 tem como pai o processo: %d.\n", currentPid, getppid());
+                printf("Processo [%d]. Processos em execução: %d\n", currentPid, info.procs);
                 filho3();
-                printf("Processo [%d]. Filho 3 apto novamente. Vai terminar sua execução. Fim do Filho3\n", getpid());
+                printf("Processo [%d]. Filho 3 apto novamente. Vai terminar sua execução. Fim do Filho3\n", currentPid);
                 exit(3);
             }
             else
@@ -170,7 +180,7 @@ int main(int argc, char *argv[])
                 // Encerra todos os filhos
                 for (int i = 0; i < 3; i++)
                 {
-                    if ((i+1) != status)
+                    if ((i + 1) != status)
                         kill(children[i], SIGTERM);
                 }
 
