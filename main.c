@@ -111,11 +111,12 @@ int main(int argc, char *argv[])
 
     // Processos em execução
     long executionProcesses = info.procs;
-
+    printf("\33[31m"); /* Para habilitar escrita na cor vermelha */
     printf("Informações do 'pai' e do sistema computacional\n");
     printf("Processo [%d]. Máximo de processos concorrentes: %ld\n", pidAtual, numOfProcess);
     printf("Processo [%d]. Carga de CPU no último minuto: %ld\n", pidAtual, cpuLoad);
-    printf("Processo [%d]. Memória disponível: %ld\n", pidAtual, freeramMemory);
+    printf("Processo [%d]. Memória disponível: %ld Kb\n", pidAtual, freeramMemory);
+    printf("\33[37m"); /* Para habilitar escrita na cor branca */
     printf("Processo [%d]. Pai tem como pai o processo: %d\n", pidAtual, parentPid);
     printf("Processo [%d]. Processos em execução: %ld\n", pidAtual, executionProcesses);
 
@@ -135,6 +136,7 @@ int main(int argc, char *argv[])
         printf("Processo [%d]. Filho 1 tem como pai o processo: %d.\n", currentPid, getppid());
         printf("Processo [%d]. Processos em execução: %d\n", currentPid, info.procs);
         filho1(num1);
+        printf("\33[32m"); /* Para habilitar escrita na cor verde */
         printf("Processo [%d]. Filho 1 vai terminar sua execução ...\n", currentPid);
         exit(1);
     }
@@ -183,8 +185,21 @@ int main(int argc, char *argv[])
                     if ((i + 1) != filho)
                         kill(children[i], SIGTERM);
                 }
-
-                printf("O filho %d com pid %d terminou primeiro\n", filho, pid);
+                if (filho == 1)
+                {
+                    printf("Não foi possível terminar de verificar se o número é primo. Fim do filho 2\n");
+                    printf("Não foi possível 'descansar' alguns segundo. Fim do filho 3\n");
+                }
+                if (filho == 2)
+                {
+                    printf("Não foi possível somar os divisores do numero. Fim do filho 1\n");
+                    printf("Não foi possível 'descansar' alguns segundo. Fim do filho 3\n");
+                }
+                if (filho == 3)
+                {
+                    printf("Não foi possível somar os divisores do numero. Fim do filho 1\n");
+                    printf("Não foi possível terminar de verificar se o número é primo. Fim do filho 2\n");
+                }
             }
         }
     }
