@@ -48,12 +48,12 @@ class FirstFit : public PushType
 public:
     int insertProcessOnMemory(std::vector<int> &memory, int process) const override
     {
-        for (int adress = 0; adress < memory.size(); adress++)
+        for (int address = 0; address < memory.size(); address++)
         {
-            if (memory[adress] >= process)
+            if (memory[address] >= process)
             {
-                memory[adress] -= process;
-                return adress;
+                memory[address] -= process;
+                return address;
             }
         }
         return -1;
@@ -65,25 +65,25 @@ class BestFit : public PushType
 public:
     int insertProcessOnMemory(std::vector<int> &memory, int process) const override
     {
-        int bestAdress = -1;
-        for (int adress = 0; adress < memory.size(); adress++)
+        int bestAddress = -1;
+        for (int address = 0; address < memory.size(); address++)
         {
-            if (memory[adress] >= process)
+            if (memory[address] >= process)
             {
-                if (bestAdress == -1)
+                if (bestAddress == -1)
                 {
-                    bestAdress = adress;
+                    bestAddress = address;
                 }
-                else if (memory[bestAdress] > memory[adress])
+                else if (memory[bestAddress] > memory[address])
                 {
-                    bestAdress = adress;
+                    bestAddress = address;
                 }
             }
         }
-        if (bestAdress == -1)
+        if (bestAddress == -1)
             return -1;
-        memory[bestAdress] -= process;
-        return bestAdress;
+        memory[bestAddress] -= process;
+        return bestAddress;
     }
 };
 
@@ -115,7 +115,7 @@ public:
         std::uniform_int_distribution<int> distribution(1, 100);
         std::uniform_int_distribution<int> memorySize(8, 16);
 
-        for (int adress = 0; adress < memorySize(generator); adress++)
+        for (int address = 0; address < memorySize(generator); address++)
         {
             _memory.push_back(distribution(generator));
         }
@@ -125,13 +125,13 @@ public:
     {
         os << "[";
         bool flag = false;
-        for (int adress = 0; adress < memoryManagement._memory.size(); adress++)
+        for (int address = 0; address < memoryManagement._memory.size(); address++)
         {
             if (flag)
             {
                 os << " - ";
             }
-            os << memoryManagement._memory[adress];
+            os << memoryManagement._memory[address];
             flag = true;
         }
         os << "]";
