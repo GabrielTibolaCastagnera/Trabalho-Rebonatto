@@ -90,23 +90,23 @@ public:
 class MemoryManagement
 {
 public:
-    void setStrategy(std::unique_ptr<PushType> strat_)
+    void setPushType(std::unique_ptr<PushType> pushType_)
     {
-        strat = std::move(strat_);
+        _pushType = std::move(pushType_);
     }
 
     int pushProcessOnMemory(int process)
     {
-        if (strat)
+        if (_pushType)
         {
-            return strat->insertProcessOnMemory(data, process);
+            return _pushType->insertProcessOnMemory(_memory, process);
         }
         return -1;
     }
 
-    MemoryManagement(std::unique_ptr<PushType> strat_)
+    MemoryManagement(std::unique_ptr<PushType> pushType_)
     {
-        strat = std::move(strat_);
+        _pushType = std::move(pushType_);
         // Seed the random number generator
         std::random_device rd;
         std::default_random_engine generator(rd());
@@ -117,21 +117,21 @@ public:
 
         for (int adress = 0; adress < memorySize(generator); adress++)
         {
-            data.push_back(distribution(generator));
+            _memory.push_back(distribution(generator));
         }
     }
 
-    friend std::ostream &operator<<(std::ostream &os, MemoryManagement &memory)
+    friend std::ostream &operator<<(std::ostream &os, const MemoryManagement &memoryManagement)
     {
         os << "[";
         bool flag = false;
-        for (int adress = 0; adress < memory.data.size(); adress++)
+        for (int adress = 0; adress < memoryManagement._memory.size(); adress++)
         {
             if (flag)
             {
-                os << ", ";
+                os << " - ";
             }
-            os << memory.data[adress];
+            os << memoryManagement._memory[adress];
             flag = true;
         }
         os << "]";
@@ -140,12 +140,12 @@ public:
 
     int length() const
     {
-        return data.size();
+        return _memory.size();
     }
 
 private:
-    std::vector<int> data;
-    std::unique_ptr<PushType> strat;
+    std::vector<int> _memory;
+    std::unique_ptr<PushType> _pushType;
 };
 
 int main()
@@ -157,7 +157,7 @@ int main()
     std::cout << a << ": " << memoryManagement << std::endl;
 
     std::cout << "length(" << memoryManagement.length() << "): " << memoryManagement << std::endl;
-    memoryManagement.setStrategy(std::make_unique<BestFit>());
+    memoryManagement.setPushType(std::make_unique<BestFit>());
     a = memoryManagement.pushProcessOnMemory(5);
     std::cout << a << ": " << memoryManagement << std::endl;
     return 0;
