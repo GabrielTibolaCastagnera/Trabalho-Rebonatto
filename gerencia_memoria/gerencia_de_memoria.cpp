@@ -36,16 +36,35 @@ Trabalhos iguais, mais de uma dupla terão a nota dividida pela quantidade de du
 #include <memory>
 #include <utility>
 #include <iostream>
-
+/**
+ * @brief Uma interface para abstrair cada jeito de colocar o processo na memória.
+ */
 class PushType
 {
 public:
+    /**
+     * @brief Abstração da funcão que insere um processo na memória.
+     * @param memory Memória a ser inserida o processo.
+     * @param process Processo a ser inserido.
+     * @returns Um inteiro.
+     * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
+     */
     virtual int insertProcessOnMemory(std::vector<int> &memory, int process) const = 0;
 };
 
+/**
+ * @brief Classe que implementa a interface PushType para inserir o processo no primeiro lugar que encontrar.
+ *
+ */
 class FirstFit : public PushType
 {
 public:
+    /**
+     * @brief Insere o processo na memória.
+     * @param memory Memória a ser inserida o processo.
+     * @param process Processo a ser inserido.
+     * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
+     */
     int insertProcessOnMemory(std::vector<int> &memory, int process) const override
     {
         for (int address = 0; address < memory.size(); address++)
@@ -60,9 +79,19 @@ public:
     }
 };
 
+/**
+ * @brief Classe que implementa a interface PushType para inserir o processo no menor lugar possível que encontrar.
+ *
+ */
 class BestFit : public PushType
 {
 public:
+    /**
+     * @brief Insere o processo na memória.
+     * @param memory Memória a ser inserida o processo.
+     * @param process Processo a ser inserido.
+     * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
+     */
     int insertProcessOnMemory(std::vector<int> &memory, int process) const override
     {
         int bestAddress = -1;
@@ -87,23 +116,37 @@ public:
     }
 };
 
+/**
+ * @brief Classe de gereciamento de memória que depende de uma implementação de inserção na memória.
+ *
+ */
 class MemoryManagement
 {
 public:
+    /**
+     * @brief Seta o método desejado para inserir os processo na memória
+    */
     void setPushType(std::unique_ptr<PushType> pushType_)
     {
         _pushType = std::move(pushType_);
     }
 
+    /**
+     * @brief Insere o processo na memória de acordo com o método inserido.
+     * @param process Processo a ser inserido.
+     * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
+     */
     int pushProcessOnMemory(int process)
     {
         if (_pushType)
         {
-            return _pushType->insertProcessOnMemory(_memory, process);
+            lastAddedProcessStatus = _pushType->insertProcessOnMemory(_memory, process);
+            return lastAddedProcessStatus;
         }
         return -1;
     }
 
+    //Inicia a memória com 9 à 15 partições com tamanho variando entre 1 e 100
     MemoryManagement(std::unique_ptr<PushType> pushType_)
     {
         _pushType = std::move(pushType_);
@@ -121,23 +164,30 @@ public:
         }
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const MemoryManagement &memoryManagement)
+    // Sobrescreve o operador << para mostrar a memória.
+    // Caso a última tentativa de inserção do processo for sucesso, estará destacado a partição.
+    friend std::ostream &operator<<(std::ostream &os, const MemoryManagement &memoryManagementUnit)
     {
         os << "[";
         bool flag = false;
-        for (int address = 0; address < memoryManagement._memory.size(); address++)
+        for (int address = 0; address < memoryManagementUnit._memory.size(); address++)
         {
             if (flag)
             {
                 os << " - ";
             }
-            os << memoryManagement._memory[address];
+            if (address == memoryManagementUnit.lastAddedProcessStatus)
+                os << "\033[1;48;5;208;32m";
+            os << memoryManagementUnit._memory[address] << "\033[0m";
             flag = true;
         }
         os << "]";
         return os;
     }
 
+    /**
+     * @return Quantidade de partições na memória.
+    */
     int length() const
     {
         return _memory.size();
@@ -146,19 +196,19 @@ public:
 private:
     std::vector<int> _memory;
     std::unique_ptr<PushType> _pushType;
+    int lastAddedProcessStatus = -1;
 };
 
 int main()
 {
-    MemoryManagement memoryManagement(std::make_unique<FirstFit>());
-    std::cout << "length(" << memoryManagement.length() << "): " << memoryManagement << std::endl;
+    MemoryManagement memoryManagementUnit(std::make_unique<FirstFit>());
+    std::cout << "length(" << memoryManagementUnit.length() << "): " << memoryManagementUnit << std::endl;
 
-    int a = memoryManagement.pushProcessOnMemory(20);
-    std::cout << a << ": " << memoryManagement << std::endl;
-
-    std::cout << "length(" << memoryManagement.length() << "): " << memoryManagement << std::endl;
-    memoryManagement.setPushType(std::make_unique<BestFit>());
-    a = memoryManagement.pushProcessOnMemory(5);
-    std::cout << a << ": " << memoryManagement << std::endl;
+    int lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(20);
+    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
+    std::cout << "length(" << memoryManagementUnit.length() << "): " << memoryManagementUnit << std::endl;
+    memoryManagementUnit.setPushType(std::make_unique<BestFit>());
+    lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(100);
+    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
     return 0;
 }
