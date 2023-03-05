@@ -1,32 +1,6 @@
 /*
-Este trabalho vai computar nota para a média semestral. Além, disso sua não realização irá ocasionar falta aos estudantes no dia 25/02/2023.
-
-Implementar um programa que simule parte de um gerenciador de memória por partições dinâmicas. O programa deve ser escrito em linguagem C/C++
-que seja executado no sistema operacional linux de 64 bits.
-
-O programa deve produzir uma lista de  espaços de memória livre, contendo entre oito (8) e 15 regiões sendo cada uma com tamanho variando entre
-um (1) e 100. A quantidade de regiões e o tamanho de cada uma deve ser gerado de forma aleatória.
-
-O lista deve ser mostrada, com cada uma das regiões de memória livre  separadas por espaço em branco, traço e espaço em branco (REG1 - REG2 - REG3).
-As expressões REG<numero> são lacunas de memória disponível. Ver exemplo de solução.
-
-O usuário deve escolher o algoritmo a ser usado para percorrer a lista, dentre os clássicos descritos na literatura. O programa deve suportar os
-quatro algoritmos comumente citados.
-
-Após a definição do algoritmo, deve-se gerar 10 solicitações de memória (aleatoriamente), com tamanhos variando maior que zero (0) e menor que 100.
-Deve-se mostrar o número e o tamanho da requisição (entre colchetes) em seguida o conjunto de regiões que estão livres, após atender a solicitação.
-
-Caso a região não seja completamente preenchida, o espaço que sobrou deve ser inserido como uma nova região no conjunto, no mesmo local da região
-original, sendo destacado em negrito.
-Caso a região for completamente preenchida, a lista deve diminuir uma posição. Nesse caso, uma solicitação preenche completamente uma região
-(perfect fit), a mesma deve ser excluída do conjunto de regiões de memória. Mostrar "Encaixe perfeito" ao final da lista, em negrito.
-
-Caso não seja possível atender uma requisição por falta de um espaço contíguo, mostrar "Solicitação não pode ser atendida" e não mostrar a lista.
-Orientações:
-
-O trabalho pode ser realizado de forma individual ou em dupla. Informe em comentário no inicio do código fonte o nome dos responsáveis pelo trabalho.
-Trabalhos que não compilam serão avaliados com nota zero (0).
-Trabalhos iguais, mais de uma dupla terão a nota dividida pela quantidade de duplas.
+Gabriel Tibola Castagnera
+Willian Brun
 */
 
 #include <iostream>
@@ -36,6 +10,8 @@ Trabalhos iguais, mais de uma dupla terão a nota dividida pela quantidade de du
 #include <memory>
 #include <utility>
 #include <iostream>
+using namespace std;
+
 /**
  * @brief Uma interface para abstrair cada jeito de colocar o processo na memória.
  */
@@ -49,7 +25,7 @@ public:
      * @returns Um inteiro.
      * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
      */
-    virtual int insertProcessOnMemory(std::vector<int> &memory, int process) const = 0;
+    virtual int insertProcessOnMemory(vector<int> &memory, int process) const = 0;
 };
 
 /**
@@ -65,7 +41,7 @@ public:
      * @param process Processo a ser inserido.
      * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
      */
-    int insertProcessOnMemory(std::vector<int> &memory, int process) const override
+    int insertProcessOnMemory(vector<int> &memory, int process) const override
     {
         for (int address = 0; address < memory.size(); address++)
         {
@@ -79,6 +55,48 @@ public:
     }
 };
 
+/**
+ * @brief Classe que implementa a interface PushType para inserir o processo no maior lugar possível que encontrar.
+ *
+ */
+class WorstFit : public PushType
+{
+public:
+    /**
+     * @brief Insere o processo na memória.
+     * @param memory Memória a ser inserida o processo.
+     * @param process Processo a ser inserido.
+     * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
+     */
+    int insertProcessOnMemory(vector<int> &memory, int process) const override
+    {
+        int worstAddress = -1;
+        for (int address = 0; address < memory.size(); address++)
+        {
+            if (memory[address] >= process)
+            {
+                if (worstAddress == -1)
+                {
+                    worstAddress = address;
+                }
+                else if (memory[worstAddress] < memory[address])
+                {
+                    worstAddress = address;
+                }
+            }
+        }
+        if (worstAddress == -1)
+            return -1;
+        memory[worstAddress] -= process;
+        return worstAddress;
+    }
+};
+
+/**
+ * @brief Classe que implementa a interface PushType para inserir o processo no primeiro lugar que encontrar.
+ * Inicia a busca no último endereço que foi inserido outro processo. 
+ *
+ */
 class CircularFit : public PushType
 {
     mutable int _address = 0;
@@ -90,7 +108,7 @@ public:
      * @param process Processo a ser inserido.
      * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
      */
-    int insertProcessOnMemory(std::vector<int> &memory, int process) const override
+    int insertProcessOnMemory(vector<int> &memory, int process) const override
     {
         int stardedAddress = _address;
         while (1)
@@ -98,7 +116,12 @@ public:
             if (memory[_address] >= process)
             {
                 memory[_address] -= process;
-                return _address;
+                int aux = _address;
+                if(memory[_address] == 0){
+                    if(_address == memory.size() - 1)
+                        _address = 0;
+                }
+                return aux;
             }
             if (_address == memory.size() - 1)
                 if (_address != stardedAddress)
@@ -126,7 +149,7 @@ public:
      * @param process Processo a ser inserido.
      * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
      */
-    int insertProcessOnMemory(std::vector<int> &memory, int process) const override
+    int insertProcessOnMemory(vector<int> &memory, int process) const override
     {
         int bestAddress = -1;
         for (int address = 0; address < memory.size(); address++)
@@ -160,9 +183,9 @@ public:
     /**
      * @brief Seta o método desejado para inserir os processo na memória
      */
-    void setPushType(std::unique_ptr<PushType> pushType_)
+    void setPushType(unique_ptr<PushType> pushType_)
     {
-        _pushType = std::move(pushType_);
+        _pushType = move(pushType_);
     }
 
     /**
@@ -175,7 +198,7 @@ public:
         if (_pushType)
         {
             _lastAddedProcessStatus = _pushType->insertProcessOnMemory(_memory, process);
-            if(_lastAddedProcessStatus != -1 && _memory[_lastAddedProcessStatus] == 0)
+            if (_lastAddedProcessStatus != -1 && _memory[_lastAddedProcessStatus] == 0)
             {
                 _memory.erase(_memory.begin() + _lastAddedProcessStatus);
                 _isPerfectFit = true;
@@ -187,21 +210,38 @@ public:
         return -1;
     }
 
-    void clearProcessStatus(){
+    /**
+     * @brief Gera 10 solicitações de memória (aleatoriamente), com tamanhos variando maior que zero (0) e menor que 100.
+     * Mostra o número e o tamanho da requisição (entre colchetes) em seguida o conjunto de regiões que estão livres.
+     */
+    void requestMemoryRandomly()
+    {
+        default_random_engine generator(rd());
+
+        // Generate n random integers between 1 and 100 and add them to the vector
+        uniform_int_distribution<int> distribution(1, 100);
+
+        for (size_t i = 0; i < 10; i++)
+        {
+            int randomNumber = distribution(generator);
+            pushProcessOnMemory(randomNumber);
+            cout << "[" << i << " - " << randomNumber << "] " << *this << endl;
+        }
+    }
+
+    void clearProcessStatus()
+    {
         _lastAddedProcessStatus = -2;
     }
 
     // Inicia a memória com 9 à 15 partições com tamanho variando entre 1 e 100
-    MemoryManagement(std::unique_ptr<PushType> pushType_)
+    MemoryManagement(unique_ptr<PushType> pushType_)
     {
-        _pushType = std::move(pushType_);
-        // Seed the random number generator
-        std::random_device rd;
-        std::default_random_engine generator(rd());
+        _pushType = move(pushType_);
+        default_random_engine generator(rd());
 
-        // Generate n random integers between 1 and 100 and add them to the vector
-        std::uniform_int_distribution<int> distribution(1, 100);
-        std::uniform_int_distribution<int> memorySize(8, 16);
+        uniform_int_distribution<int> distribution(1, 100);
+        uniform_int_distribution<int> memorySize(8, 16);
 
         for (int address = 0; address < memorySize(generator); address++)
         {
@@ -211,16 +251,20 @@ public:
 
     // Sobrescreve o operador << para mostrar a memória.
     // Caso a última tentativa de inserção do processo for sucesso, estará destacado a partição.
-    friend std::ostream &operator<<(std::ostream &os, const MemoryManagement &memoryManagementUnit)
+    friend ostream &operator<<(ostream &os, const MemoryManagement &memoryManagementUnit)
     {
-        if(memoryManagementUnit._isPerfectFit)
+        if (memoryManagementUnit._isPerfectFit)
         {
-            os << "\033[1;48;5;208;32m" << "Encaixe Perfeito" << "\033[0m";
+            os << "\033[1;48;5;208;32m"
+               << "Encaixe Perfeito"
+               << "\033[0m";
             return os;
         }
-        if(memoryManagementUnit._lastAddedProcessStatus == -1)
+        if (memoryManagementUnit._lastAddedProcessStatus == -1)
         {
-            os << "\033[1;48;5;208;32m" << "Solicitação não pode ser atendida" << "\033[0m";
+            os << "\033[1;48;5;208;32m"
+               << "Solicitação não pode ser atendida"
+               << "\033[0m";
             return os;
         }
         os << "[";
@@ -249,27 +293,61 @@ public:
     }
 
 private:
-    std::vector<int> _memory;
-    std::unique_ptr<PushType> _pushType;
+    random_device rd;
+    vector<int> _memory;
+    unique_ptr<PushType> _pushType;
     int _lastAddedProcessStatus = -2;
     bool _isPerfectFit = false;
 };
 
 int main()
 {
-    MemoryManagement memoryManagementUnit(std::make_unique<FirstFit>());
-    std::cout << "length(" << memoryManagementUnit.length() << "): " << memoryManagementUnit << std::endl;
+    MemoryManagement memoryManagementUnit(make_unique<FirstFit>());
+    int algorithmType;
 
-    int lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(20);
-    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
-    std::cout << "length(" << memoryManagementUnit.length() << "): " << memoryManagementUnit << std::endl;
-    memoryManagementUnit.setPushType(std::make_unique<BestFit>());
-    lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(100);
-    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
-    memoryManagementUnit.setPushType(std::make_unique<CircularFit>());
-    lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(50);
-    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
-    lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(100);
-    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
+    cout << "===== Gerenciador de memoria por particoes dinamicas =====" << endl
+         << "Escolha um dos algoritmos:" << endl
+         << "0 - First-fit" << endl
+         << "1 - Best-fit" << endl
+         << "2 - Worst-fit" << endl
+         << "3 - Circular-fit" << endl
+         << endl
+         << "9 - Exit" << endl;
+
+    cin >> algorithmType;
+
+    switch (algorithmType)
+    {
+    case 0:
+        cout << "===== Algoritmo First-fit! =====" << endl;
+        break;
+
+    case 1:
+        cout << "===== Algoritmo Best-fit! =====" << endl;
+        memoryManagementUnit.setPushType(make_unique<BestFit>());
+        break;
+
+    case 2:
+        cout << "===== Algoritmo Worst-fit! =====" << endl;
+        memoryManagementUnit.setPushType(make_unique<WorstFit>());
+        break;
+
+    case 3:
+        cout << "===== Algoritmo Circular-fit! =====" << endl;
+        memoryManagementUnit.setPushType(make_unique<CircularFit>());
+        break;
+
+    case 9:
+        cout << "Exited!" << endl;
+        exit(0);
+        break;
+
+    default:
+        cout << "Out of range!" << endl;
+        exit(0);
+        break;
+    }
+    cout << "Original " << memoryManagementUnit << endl;
+    memoryManagementUnit.requestMemoryRandomly();
     return 0;
 }
