@@ -79,6 +79,40 @@ public:
     }
 };
 
+class CircularFit : public PushType
+{
+    mutable int _address = 0;
+
+public:
+    /**
+     * @brief Insere o processo na memória.
+     * @param memory Memória a ser inserida o processo.
+     * @param process Processo a ser inserido.
+     * @returns Se caso o processo foi inserido, retorna qual partição onde foi inserida, se não retorna -1.
+     */
+    int insertProcessOnMemory(std::vector<int> &memory, int process) const override
+    {
+        int stardedAddress = _address;
+        while (1)
+        {
+            if (memory[_address] >= process)
+            {
+                memory[_address] -= process;
+                return _address;
+            }
+            if (_address == memory.size() - 1)
+                if (_address != stardedAddress)
+                    _address = -1;
+                else
+                    return -1;
+            _address++;
+            if (_address == stardedAddress)
+                return -1;
+        }
+        return -1;
+    }
+};
+
 /**
  * @brief Classe que implementa a interface PushType para inserir o processo no menor lugar possível que encontrar.
  *
@@ -125,7 +159,7 @@ class MemoryManagement
 public:
     /**
      * @brief Seta o método desejado para inserir os processo na memória
-    */
+     */
     void setPushType(std::unique_ptr<PushType> pushType_)
     {
         _pushType = std::move(pushType_);
@@ -140,13 +174,24 @@ public:
     {
         if (_pushType)
         {
-            lastAddedProcessStatus = _pushType->insertProcessOnMemory(_memory, process);
-            return lastAddedProcessStatus;
+            _lastAddedProcessStatus = _pushType->insertProcessOnMemory(_memory, process);
+            if(_lastAddedProcessStatus != -1 && _memory[_lastAddedProcessStatus] == 0)
+            {
+                _memory.erase(_memory.begin() + _lastAddedProcessStatus);
+                _isPerfectFit = true;
+            }
+            else
+                _isPerfectFit = false;
+            return _lastAddedProcessStatus;
         }
         return -1;
     }
 
-    //Inicia a memória com 9 à 15 partições com tamanho variando entre 1 e 100
+    void clearProcessStatus(){
+        _lastAddedProcessStatus = -2;
+    }
+
+    // Inicia a memória com 9 à 15 partições com tamanho variando entre 1 e 100
     MemoryManagement(std::unique_ptr<PushType> pushType_)
     {
         _pushType = std::move(pushType_);
@@ -168,6 +213,16 @@ public:
     // Caso a última tentativa de inserção do processo for sucesso, estará destacado a partição.
     friend std::ostream &operator<<(std::ostream &os, const MemoryManagement &memoryManagementUnit)
     {
+        if(memoryManagementUnit._isPerfectFit)
+        {
+            os << "\033[1;48;5;208;32m" << "Encaixe Perfeito" << "\033[0m";
+            return os;
+        }
+        if(memoryManagementUnit._lastAddedProcessStatus == -1)
+        {
+            os << "\033[1;48;5;208;32m" << "Solicitação não pode ser atendida" << "\033[0m";
+            return os;
+        }
         os << "[";
         bool flag = false;
         for (int address = 0; address < memoryManagementUnit._memory.size(); address++)
@@ -176,7 +231,7 @@ public:
             {
                 os << " - ";
             }
-            if (address == memoryManagementUnit.lastAddedProcessStatus)
+            if (address == memoryManagementUnit._lastAddedProcessStatus)
                 os << "\033[1;48;5;208;32m";
             os << memoryManagementUnit._memory[address] << "\033[0m";
             flag = true;
@@ -187,7 +242,7 @@ public:
 
     /**
      * @return Quantidade de partições na memória.
-    */
+     */
     int length() const
     {
         return _memory.size();
@@ -196,7 +251,8 @@ public:
 private:
     std::vector<int> _memory;
     std::unique_ptr<PushType> _pushType;
-    int lastAddedProcessStatus = -1;
+    int _lastAddedProcessStatus = -2;
+    bool _isPerfectFit = false;
 };
 
 int main()
@@ -208,6 +264,11 @@ int main()
     std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
     std::cout << "length(" << memoryManagementUnit.length() << "): " << memoryManagementUnit << std::endl;
     memoryManagementUnit.setPushType(std::make_unique<BestFit>());
+    lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(100);
+    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
+    memoryManagementUnit.setPushType(std::make_unique<CircularFit>());
+    lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(50);
+    std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
     lastAddedProcessStatus = memoryManagementUnit.pushProcessOnMemory(100);
     std::cout << lastAddedProcessStatus << ": " << memoryManagementUnit << std::endl;
     return 0;
