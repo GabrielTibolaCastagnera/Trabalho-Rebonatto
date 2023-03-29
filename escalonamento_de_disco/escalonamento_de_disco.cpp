@@ -11,11 +11,18 @@ ostream &operator<<(ostream &os, const vector<int> &vector)
 
     os << "[";
     if (vector.size() > 0)
+    {
+        if (vector[0] < 10)
+            os << "0";
         os << vector[0];
+    }
 
     for (int vectorIndex = 1; vectorIndex < vector.size(); vectorIndex++)
     {
-        os << " - " << vector[vectorIndex];
+        os << " - ";
+        if (vector[vectorIndex] < 10)
+            os << "0";
+        os << vector[vectorIndex];
     }
 
     os << "]";
@@ -25,8 +32,10 @@ ostream &operator<<(ostream &os, const vector<int> &vector)
 
 void const displayResult(const int acessed, const vector<int> &requisitions, const int displacement)
 {
-
-    cout << "Acessou " << acessed << " " << requisitions << " Já deslocou " << displacement << endl;
+    cout << "Acessou ";
+    if (acessed < 10)
+        cout << "0";
+    cout << acessed << " " << requisitions << " Já deslocou " << displacement << endl;
 }
 
 void fillTenRequisitions(vector<int> &requisitions)
