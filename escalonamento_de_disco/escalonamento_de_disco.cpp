@@ -82,12 +82,12 @@ int elevatorScan(vector<int> &requisitions, int header)
         int foundedIndex = 0;
         for (int requisitionIndex = 0; requisitionIndex < requisitions.size(); requisitionIndex++)
         {
-            if (requisitions[requisitionIndex] <= header && !isRight ||
-                requisitions[requisitionIndex] >= header && isRight)
+            if ((requisitions[requisitionIndex] <= header && !isRight) ||
+                (requisitions[requisitionIndex] >= header && isRight))
             {
                 if (!foundedAccess ||
-                    (isRight && requisitions[requisitionIndex] < requisitions[foundedIndex] ||
-                     !isRight && requisitions[requisitionIndex] > requisitions[foundedIndex]))
+                    ((isRight && requisitions[requisitionIndex]) < requisitions[foundedIndex] ||
+                     (!isRight && requisitions[requisitionIndex]) > requisitions[foundedIndex]))
                     foundedIndex = requisitionIndex;
                 foundedAccess = true;
             }
@@ -121,6 +121,14 @@ int elevatorScan(vector<int> &requisitions, int header)
     return displacement;
 }
 
+void printOriginalAndPosition(vector<int> requisitions, int header)
+{
+    cout << endl
+         << "Original " << requisitions << endl
+         << "Posição inicial da cabeça de leitura e gravação " << header << endl
+         << endl;
+}
+
 int main()
 {
     random_device rd;
@@ -131,17 +139,52 @@ int main()
 
     fillTenRequisitions(requisitions);
 
-    cout << "Original " << requisitions << endl
-         << "Posição inicial da cabeça de leitura e gravação " << header << endl
-         << endl;
+    bool validType = false;
+    while (!validType) // Enquanto não for um tipo de algoritmo válido
+    {
+        int algorithmType;
+        cout << "Escolha um dos algoritmos:" << endl
+             << endl
+             << "0 - FCFS" << endl
+             << "1 - SSTF" << endl
+             << "2 - Scan (elevador)" << endl
+             << "3 - Circular SCAN" << endl
+             << "4 - C-Look" << endl
+             << endl;
 
-    firstComeFirstServed(requisitions, header);
+        cin >> algorithmType;
+        switch (algorithmType)
+        {
+        case 0:
+            validType = true;
+            printOriginalAndPosition(requisitions, header);
+            firstComeFirstServed(requisitions, header);
+            break;
 
-    fillTenRequisitions(requisitions);
+        case 1:
+            validType = true;
+            // printOriginalAndPosition(requisitions, header);
 
-    cout << "\nOriginal " << requisitions << endl
-         << "Posição inicial da cabeça de leitura e gravação " << header << endl
-         << endl;
+            break;
 
-    elevatorScan(requisitions, header);
+        case 2:
+            validType = true;
+            printOriginalAndPosition(requisitions, header);
+            elevatorScan(requisitions, header);
+            break;
+
+        case 3:
+            validType = true;
+            // printOriginalAndPosition(requisitions, header);
+
+            break;
+
+        case 4:
+            validType = true;
+            // printOriginalAndPosition(requisitions, header);
+
+            break;
+        }
+    }
+    return 0;
 }
