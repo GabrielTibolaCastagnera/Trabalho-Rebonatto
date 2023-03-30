@@ -209,7 +209,70 @@ int cLook(vector<int> &requests, int header)
     cout << "========= Algoritmo C-look ==========" << endl;
 
     int displacement = 0;
+    int distance, cur_track;
+    vector<int> left, right;
+    vector<int> seek_sequence;
+    vector<int> remainingRequests = requests;
 
+    for (int i = 0; i < requests.size(); i++)
+    {
+        if (requests[i] < header)
+            left.push_back(requests[i]);
+        if (requests[i] >= header)
+            right.push_back(requests[i]);
+    }
+
+    // Sorting left and right vectors
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
+
+    // Right
+    for (int i = 0; i < right.size(); i++)
+    {
+        cur_track = right[i];
+        seek_sequence.push_back(cur_track);
+        distance = abs(cur_track - header);
+        displacement += distance;
+        header = cur_track;
+
+        int j = 0;
+        for (j = 0; j < remainingRequests.size(); j++)
+        {
+            if (remainingRequests[j] == cur_track)
+            {
+                break;
+            }
+        }
+        remainingRequests.erase(remainingRequests.begin() + j);
+        displayResult(cur_track, remainingRequests, displacement);
+    }
+
+    if (left.size() != 0)
+    {
+        displacement += abs(header - left[0]);
+        header = left[0];
+    }
+
+    // Left
+    for (int i = 0; i < left.size(); i++)
+    {
+        cur_track = left[i];
+        seek_sequence.push_back(cur_track);
+        distance = abs(cur_track - header);
+        displacement += distance;
+        header = cur_track;
+
+        int j = 0;
+        for (j = 0; j < remainingRequests.size(); j++)
+        {
+            if (remainingRequests[j] == cur_track)
+            {
+                break;
+            }
+        }
+        remainingRequests.erase(remainingRequests.begin() + j);
+        displayResult(cur_track, remainingRequests, displacement);
+    }
     return displacement;
 }
 
@@ -234,8 +297,7 @@ int main()
              << "1 - SSTF" << endl
              << "2 - Scan (elevador)" << endl
              << "3 - Circular SCAN" << endl
-             << "4 - C-Look" << endl
-             << endl;
+             << "4 - C-Look" << endl;
 
         cin >> algorithmType;
         switch (algorithmType)
