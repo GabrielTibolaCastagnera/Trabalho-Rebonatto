@@ -17,7 +17,7 @@ ostream &operator<<(ostream &os, const vector<int> &vector)
         os << vector[0];
     }
 
-    for (int vectorIndex = 1; vectorIndex < vector.size(); vectorIndex++)
+    for (long unsigned int vectorIndex = 1; (vectorIndex < vector.size()); vectorIndex++)
     {
         os << " - ";
         if (vector[vectorIndex] < 10)
@@ -80,14 +80,14 @@ int elevatorScan(vector<int> &requisitions, int header)
         int accessed = 0;
         bool foundedAccess = false;
         int foundedIndex = 0;
-        for (int requisitionIndex = 0; requisitionIndex < requisitions.size(); requisitionIndex++)
+        for (long unsigned int requisitionIndex = 0; requisitionIndex < requisitions.size(); requisitionIndex++)
         {
             if ((requisitions[requisitionIndex] <= header && !isRight) ||
                 (requisitions[requisitionIndex] >= header && isRight))
             {
                 if (!foundedAccess ||
-                    ((isRight && requisitions[requisitionIndex]) < requisitions[foundedIndex] ||
-                     (!isRight && requisitions[requisitionIndex]) > requisitions[foundedIndex]))
+                    (isRight && requisitions[requisitionIndex] < requisitions[foundedIndex]) ||
+                    (!isRight && requisitions[requisitionIndex] > requisitions[foundedIndex]))
                     foundedIndex = requisitionIndex;
                 foundedAccess = true;
             }
