@@ -5,9 +5,7 @@ Gabriel Tibola Castagnera
 
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <random>
-#include <utility>
 #include <bits/stdc++.h>
 
 using namespace std;
