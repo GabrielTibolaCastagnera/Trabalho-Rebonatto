@@ -8,6 +8,7 @@ Gabriel Tibola Castagnera
 #include <algorithm>
 #include <random>
 #include <utility>
+#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -93,7 +94,7 @@ int shortestSeekTimeFirst(vector<int> &requests, int header)
     {
         int minDisplacement = INT_MAX;
         int indexToAccess = -1;
-        for (int i = 0; i < remainingRequests.size(); ++i)
+        for (size_t i = 0; i < remainingRequests.size(); ++i)
         {
             int displacement = abs(remainingRequests[i] - header);
             if (displacement < minDisplacement)
@@ -166,42 +167,68 @@ int elevatorScan(vector<int> &requests, int header)
 int circularScan(vector<int> &requests, int header)
 {
     cout << "========== Algoritmo Circular SCAN! ==========" << endl;
-    int totalDisplacement = 0;
-    vector<int> remainingRequests = requests;
-
-    sort(remainingRequests.begin(), remainingRequests.end());
-
-    vector<int>::iterator it = find(remainingRequests.begin(), remainingRequests.end(), header);
-    if (it == remainingRequests.end())
+    int displacement = 0;
+    vector<int> left, right;
+    for (size_t i = 0; i < requests.size(); i++)
     {
-        remainingRequests.push_back(header);
-        sort(remainingRequests.begin(), remainingRequests.end());
-        it = find(remainingRequests.begin(), remainingRequests.end(), header);
+        if (requests[i] < header)
+            left.push_back(requests[i]);
+        if (requests[i] >= header)
+            right.push_back(requests[i]);
     }
-
-    int currentIndex = it - remainingRequests.begin();
-    int direction = 1;
-
-    while (!remainingRequests.empty())
+    // Sorting left and right vectors
+    stable_sort(left.begin(), left.end());
+    stable_sort(right.begin(), right.end());
+    // Right
+    for (size_t i = 0; i < right.size(); i++)
     {
-        int nextIndex = currentIndex + direction;
 
-        if (nextIndex >= remainingRequests.size() || nextIndex < 0)
+        int cur_track = right[i];
+        int distance = abs(cur_track - header);
+        displacement += distance;
+        header = cur_track;
+
+        size_t j = 0;
+        for (j = 0; j < requests.size(); j++)
         {
-            direction = -direction;
-            nextIndex = currentIndex + direction;
+            if (requests[j] == cur_track)
+            {
+                break;
+            }
         }
-
-        int accessed = remainingRequests[nextIndex];
-        int displacement = abs(accessed - header);
-        totalDisplacement += displacement;
-        header = accessed;
-        remainingRequests.erase(remainingRequests.begin() + nextIndex);
-        currentIndex = nextIndex - (direction == -1);
-        displayResult(accessed, remainingRequests, totalDisplacement);
+        requests.erase(requests.begin() + j);
+        displayResult(cur_track, requests, displacement);
+    }
+    if (!requests.empty())
+    {
+        displacement += abs(header - 99);
+        header = 0;
+        if (header != 99)
+            displayResult(99, requests, displacement);
+        displacement += 99;
+        displayResult(header, requests, displacement);
     }
 
-    return totalDisplacement;
+    // Left
+    for (size_t i = 0; i < left.size(); i++)
+    {
+        int cur_track = left[i];
+        int distance = abs(cur_track - header);
+        displacement += distance;
+        header = cur_track;
+
+        size_t j = 0;
+        for (j = 0; j < requests.size(); j++)
+        {
+            if (requests[j] == cur_track)
+            {
+                break;
+            }
+        }
+        requests.erase(requests.begin() + j);
+        displayResult(cur_track, requests, displacement);
+    }
+    return displacement;
 }
 
 int cLook(vector<int> &requests, int header)
@@ -211,10 +238,8 @@ int cLook(vector<int> &requests, int header)
     int displacement = 0;
     int distance, cur_track;
     vector<int> left, right;
-    vector<int> seek_sequence;
-    vector<int> remainingRequests = requests;
 
-    for (int i = 0; i < requests.size(); i++)
+    for (size_t i = 0; i < requests.size(); i++)
     {
         if (requests[i] < header)
             left.push_back(requests[i]);
@@ -223,56 +248,48 @@ int cLook(vector<int> &requests, int header)
     }
 
     // Sorting left and right vectors
-    sort(left.begin(), left.end());
-    sort(right.begin(), right.end());
+    stable_sort(left.begin(), left.end());
+    stable_sort(right.begin(), right.end());
 
     // Right
-    for (int i = 0; i < right.size(); i++)
+    for (size_t i = 0; i < right.size(); i++)
     {
         cur_track = right[i];
-        seek_sequence.push_back(cur_track);
         distance = abs(cur_track - header);
         displacement += distance;
         header = cur_track;
 
-        int j = 0;
-        for (j = 0; j < remainingRequests.size(); j++)
+        size_t j = 0;
+        for (j = 0; j < requests.size(); j++)
         {
-            if (remainingRequests[j] == cur_track)
+            if (requests[j] == cur_track)
             {
                 break;
             }
         }
-        remainingRequests.erase(remainingRequests.begin() + j);
-        displayResult(cur_track, remainingRequests, displacement);
+        requests.erase(requests.begin() + j);
+        displayResult(cur_track, requests, displacement);
     }
-
-    if (left.size() != 0)
-    {
-        displacement += abs(header - left[0]);
-        header = left[0];
-    }
-
-    // Left
-    for (int i = 0; i < left.size(); i++)
+    // left
+    for (size_t i = 0; i < left.size(); i++)
     {
         cur_track = left[i];
-        seek_sequence.push_back(cur_track);
         distance = abs(cur_track - header);
         displacement += distance;
         header = cur_track;
 
-        int j = 0;
-        for (j = 0; j < remainingRequests.size(); j++)
+        size_t j = 0;
+        for (j = 0; j < requests.size(); j++)
         {
-            if (remainingRequests[j] == cur_track)
+            if (requests[j] == cur_track)
             {
                 break;
             }
         }
-        remainingRequests.erase(remainingRequests.begin() + j);
-        displayResult(cur_track, remainingRequests, displacement);
+        requests.erase(requests.begin() + j);
+        displayResult(cur_track, requests, displacement);
     }
+
     return displacement;
 }
 
@@ -336,7 +353,10 @@ int main()
             totalRequests = cLook(requests, header);
             cout << "Quantidade total de deslocamentos: " << totalRequests << endl;
             break;
-        }
+        default:
+            cout << "Escolha errada!\nEscolha um valor entre 0 e 4\n\n";
+            break;
+        }          
     }
     return 0;
 }
